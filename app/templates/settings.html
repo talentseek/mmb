@@ -23,6 +23,37 @@
     <div class="container mt-5">
         <h1>Settings</h1>
         <p>Manage your Cloudflare and Smartlead API credentials here.</p>
+
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-3">
+                <label for="cloudflareEmail" class="form-label">Cloudflare Email</label>
+                {{ form.cloudflare_email(class="form-control", id="cloudflareEmail") }}
+            </div>
+
+            <div class="mb-3">
+                <label for="cloudflareApiKey" class="form-label">Cloudflare API Key</label>
+                {{ form.cloudflare_api_key(class="form-control", id="cloudflareApiKey") }}
+            </div>
+
+            <div class="mb-3">
+                <label for="smartleadApiKey" class="form-label">Smartlead API Key</label>
+                {{ form.smartlead_api_key(class="form-control", id="smartleadApiKey") }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+        </form>
+
+        {% if form.errors %}
+            <div class="alert alert-danger mt-3">
+                <ul>
+                    {% for field, errors in form.errors.items() %}
+                        <li>{{ field }}: {{ errors[0] }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

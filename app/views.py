@@ -3,7 +3,7 @@ from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 from app.models import User
-from app.forms import LoginForm, RegisterForm
+from app.forms import LoginForm, RegisterForm, SettingsForm  # Import SettingsForm
 import stripe
 
 # Define the blueprint for the main app
@@ -56,34 +56,52 @@ def signup():
 @main.route('/dashboard')
 @login_required
 def dashboard():
-    # Fetch plan IDs within the application context
     stripe_basic_plan_id = current_app.config['STRIPE_BASIC_PLAN_ID']
     stripe_pro_plan_id = current_app.config['STRIPE_PRO_PLAN_ID']
     stripe_expert_plan_id = current_app.config['STRIPE_EXPERT_PLAN_ID']
 
-    # Map Stripe plan IDs to plan names
     plan_names = {
         stripe_basic_plan_id: 'Basic',
         stripe_pro_plan_id: 'Pro',
         stripe_expert_plan_id: 'Expert'
     }
 
-    # Get the plan name from the mapped plan IDs
     plan_name = plan_names.get(current_user.stripe_plan_id, 'Unknown Plan')
     
+    # Check if Cloudflare and Smartlead credentials exist
+    missing_credentials = not (current_user.cloudflare_email and current_user.cloudflare_api_key and current_user.smartlead_api_key)
+
     return render_template(
         'dashboard.html', 
         stripe_basic_plan_id=stripe_basic_plan_id, 
         stripe_pro_plan_id=stripe_pro_plan_id, 
         stripe_expert_plan_id=stripe_expert_plan_id,
-        plan_name=plan_name
+        plan_name=plan_name,
+        missing_credentials=missing_credentials
     )
 
 # Route to the settings page
-@main.route('/settings')
+@main.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
-    return render_template('settings.html')
+    form = SettingsForm()
+    
+    if form.validate_on_submit():
+        # Save Cloudflare and Smartlead API credentials
+        current_user.cloudflare_email = form.cloudflare_email.data
+        current_user.cloudflare_api_key = form.cloudflare_api_key.data
+        current_user.smartlead_api_key = form.smartlead_api_key.data
+        db.session.commit()
+        flash('Settings updated successfully!', 'success')
+        return redirect(url_for('main.settings'))
+
+    # Prepopulate form with the existing user data if available
+    if request.method == 'GET':
+        form.cloudflare_email.data = current_user.cloudflare_email
+        form.cloudflare_api_key.data = current_user.cloudflare_api_key
+        form.smartlead_api_key.data = current_user.smartlead_api_key
+
+    return render_template('settings.html', form=form)
 
 # Route to handle user logout
 @main.route('/logout')

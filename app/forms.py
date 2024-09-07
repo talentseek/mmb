@@ -13,3 +13,10 @@ class RegisterForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired()])
     last_name = StringField('Last Name', validators=[DataRequired()])
     submit = SubmitField('Sign Up')
+
+# New form for settings page
+class SettingsForm(FlaskForm):
+    cloudflare_email = StringField('Cloudflare Email', validators=[DataRequired(), Email()])
+    cloudflare_api_key = StringField('Cloudflare API Key', validators=[DataRequired()])
+    smartlead_api_key = StringField('Smartlead API Key', validators=[DataRequired()])
+    submit = SubmitField('Save Settings')

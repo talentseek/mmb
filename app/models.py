@@ -11,3 +11,8 @@ class User(UserMixin, db.Model):
     stripe_subscription_id = db.Column(db.String(100), nullable=True)
     stripe_plan_id = db.Column(db.String(100), nullable=True)
     subscription_status = db.Column(db.String(50), nullable=True)
+    
+    # New fields for Cloudflare and Smartlead API credentials
+    cloudflare_email = db.Column(db.String(150), nullable=True)
+    cloudflare_api_key = db.Column(db.String(100), nullable=True)
+    smartlead_api_key = db.Column(db.String(100), nullable=True)
