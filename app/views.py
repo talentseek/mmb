@@ -1,9 +1,9 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, jsonify
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
-from app.models import User
-from app.forms import LoginForm, RegisterForm, SettingsForm
+from app.models import User, Domain  # Make sure Domain model is added
+from app.forms import LoginForm, RegisterForm, SettingsForm, DomainForm  # Import DomainForm
 import stripe
 
 # Define the blueprint for the main app
@@ -173,10 +173,55 @@ def subscription_success():
     return redirect(url_for('main.dashboard'))
 
 # Route to manage domains
-@main.route('/domains')
+@main.route('/domains', methods=['GET', 'POST'])
 @login_required
 def domains():
-    return render_template('domains.html')
+    form = DomainForm()
+    
+    if form.validate_on_submit():
+        # Save the domain to the database
+        new_domain = Domain(
+            user_id=current_user.id,
+            domain=form.domain.data,
+            cloudflare_zone_id=form.cloudflare_zone_id.data,
+            forwarding_url=form.forwarding_url.data
+        )
+        db.session.add(new_domain)
+        db.session.commit()
+
+        flash('Domain added successfully!', 'success')
+        return redirect(url_for('main.domains'))
+
+    user_domains = Domain.query.filter_by(user_id=current_user.id).all()
+    return render_template('domains.html', form=form, domains=user_domains)
+
+# Route to delete a domain
+@main.route('/delete_domain/<int:domain_id>', methods=['POST'])
+@login_required
+def delete_domain(domain_id):
+    domain = Domain.query.get_or_404(domain_id)
+
+    if domain.user_id != current_user.id:
+        flash('You are not authorized to delete this domain.', 'danger')
+        return redirect(url_for('main.domains'))
+
+    db.session.delete(domain)
+    db.session.commit()
+    flash('Domain deleted successfully!', 'success')
+    return redirect(url_for('main.domains'))
+
+# Route to verify domain (MXToolbox)
+@main.route('/verify_domain/<int:domain_id>')
+@login_required
+def verify_domain(domain_id):
+    domain = Domain.query.get_or_404(domain_id)
+
+    if domain.user_id != current_user.id:
+        flash('You are not authorized to verify this domain.', 'danger')
+        return redirect(url_for('main.domains'))
+
+    verify_url = f"https://mxtoolbox.com/emailhealth/{domain.domain}"
+    return redirect(verify_url)
 
 # Route to manage mailboxes
 @main.route('/mailboxes')

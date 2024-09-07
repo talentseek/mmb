@@ -3,8 +3,53 @@
 {% block title %}Domains | MassMailbox{% endblock %}
 
 {% block content %}
+<div class="container mt-5">
     <h1>Domain Management</h1>
-    <p>Manage your domains here.</p>
+    <p>Add your domain and configure Cloudflare and forwarding settings below:</p>
 
-    <a class="btn btn-primary" href="#">Add Domain</a>
+    <!-- Form for adding domains -->
+    <form id="domainForm" method="POST" action="{{ url_for('main.domains') }}">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            <label for="domain" class="form-label">Domain</label>
+            {{ form.domain(class="form-control", id="domain", placeholder="example.com") }}
+        </div>
+
+        <div class="mb-3">
+            <label for="zoneId" class="form-label">Cloudflare Zone ID 
+                <span class="info-icon" data-bs-toggle="tooltip" title="Where to find this?">ℹ</span>
+            </label>
+            {{ form.cloudflare_zone_id(class="form-control", id="zoneId", placeholder="Cloudflare Zone ID") }}
+            <span class="tooltip-text">You can find your Cloudflare Zone ID under your domain settings in Cloudflare. It's listed under the 'Overview' tab.</span>
+        </div>
+
+        <div class="mb-3">
+            <label for="forwardingUrl" class="form-label">Forwarding URL</label>
+            {{ form.forwarding_url(class="form-control", id="forwardingUrl", placeholder="https://your-forwarding-url.com") }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Domain</button>
+    </form>
+
+    <h2 class="mt-5">Your Domains</h2>
+    <ul id="domainList">
+        {% for domain in domains %}
+            <li class="domain-item">
+                <p><strong>Domain:</strong> {{ domain.domain }}</p>
+                <p><strong>Cloudflare Zone ID:</strong> {{ domain.cloudflare_zone_id }}</p>
+                <p><strong>Forwarding to:</strong> {{ domain.forwarding_url }}</p>
+
+                <!-- Buttons for Verify and Delete -->
+                <a class="btn btn-secondary" href="https://mxtoolbox.com/emailhealth/{{ domain.domain }}" target="_blank">Verify</a>
+                <form method="POST" action="{{ url_for('main.delete_domain', domain_id=domain.id) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </li>
+            <hr>
+        {% else %}
+            <li>No domains added yet.</li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}
