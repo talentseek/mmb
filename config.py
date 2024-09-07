@@ -3,3 +3,12 @@ import os
 SECRET_KEY = os.urandom(24)
 SQLALCHEMY_DATABASE_URI = 'sqlite:///users.db'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# Stripe API keys
+STRIPE_PUBLIC_KEY = 'pk_test_ul1onGff4xh1vHvWsz93pA9k'
+STRIPE_SECRET_KEY = 'sk_test_2F1ONXTVYsGCsj36fhS1v4gL'
+
+# Stripe Plan/Price IDs
+STRIPE_BASIC_PLAN_ID = 'price_1PwN6DL1UocWnTHu4TBtlioH'
+STRIPE_PRO_PLAN_ID = 'price_1PwN6lL1UocWnTHuCDXhTImX'
+STRIPE_EXPERT_PLAN_ID = 'price_1PwN74L1UocWnTHuRNW320dG'
