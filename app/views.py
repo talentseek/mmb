@@ -3,7 +3,7 @@ from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 from app.models import User
-from app.forms import LoginForm, RegisterForm, SettingsForm  # Import SettingsForm
+from app.forms import LoginForm, RegisterForm, SettingsForm
 import stripe
 
 # Define the blueprint for the main app
@@ -67,7 +67,7 @@ def dashboard():
     }
 
     plan_name = plan_names.get(current_user.stripe_plan_id, 'Unknown Plan')
-    
+
     # Check if Cloudflare and Smartlead credentials exist
     missing_credentials = not (current_user.cloudflare_email and current_user.cloudflare_api_key and current_user.smartlead_api_key)
 
@@ -177,3 +177,21 @@ def subscription_success():
 @login_required
 def domains():
     return render_template('domains.html')
+
+# Route to manage mailboxes
+@main.route('/mailboxes')
+@login_required
+def mailboxes():
+    return render_template('mailboxes.html')
+
+# Context processor for adding the navigation bar to every page
+@main.app_context_processor
+def inject_navigation():
+    return dict(
+        navigation=[
+            {'name': 'Dashboard', 'url': url_for('main.dashboard')},
+            {'name': 'Settings', 'url': url_for('main.settings')},
+            {'name': 'Domains', 'url': url_for('main.domains')},
+            {'name': 'Mailboxes', 'url': url_for('main.mailboxes')}
+        ]
+    )
