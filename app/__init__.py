@@ -4,11 +4,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
+from flask_admin import Admin
 
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 csrf = CSRFProtect()  # Initialize CSRF protection
+admin = Admin(template_mode='bootstrap4')  # Initialize Flask-Admin with bootstrap4 for consistency
 
 def create_app():
     app = Flask(__name__, template_folder='templates')
@@ -40,6 +42,10 @@ def create_app():
 
     from app.views.mailbox_views import mailbox as mailbox_blueprint
     app.register_blueprint(mailbox_blueprint)
+
+    # Initialize Flask-Admin
+    from app.admin_views import init_admin
+    init_admin(app)  # Call the function to set up admin with models
 
     return app
 
