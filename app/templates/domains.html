@@ -39,6 +39,15 @@
                 <p><strong>Cloudflare Zone ID:</strong> {{ domain.cloudflare_zone_id }}</p>
                 <p><strong>Forwarding to:</strong> {{ domain.forwarding_url }}</p>
 
+                <!-- Show the status of domain being added to the server -->
+                <p><strong>Status:</strong> 
+                    {% if domain.added_to_server %}
+                        <span class="text-success">Added to Server ✅</span>
+                    {% else %}
+                        <span class="text-warning">Pending Server Addition ⚠</span>
+                    {% endif %}
+                </p>
+
                 <!-- Buttons for Verify and Delete -->
                 <a class="btn btn-secondary" href="https://mxtoolbox.com/emailhealth/{{ domain.domain }}" target="_blank">Verify</a>
                 <form method="POST" action="{{ url_for('domain.delete_domain', domain_id=domain.id) }}" style="display:inline;"> <!-- Corrected domain delete route -->

@@ -30,13 +30,16 @@ class Domain(db.Model):
     forwarding_url = db.Column(db.String(255), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Foreign key to User model
 
+    # New field to track if the domain has been added to the server
+    added_to_server = db.Column(db.Boolean, default=False, nullable=False)
+
     # Relationship to the Mailbox model
     mailboxes = db.relationship('Mailbox', backref='domain', lazy=True)
 
     def __repr__(self):
         return f'<Domain {self.domain}>'
 
-# Mailbox model (removed mailbox_type)
+# Mailbox model
 class Mailbox(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email_address = db.Column(db.String(255), nullable=False)
