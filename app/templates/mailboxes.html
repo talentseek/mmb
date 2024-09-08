@@ -8,7 +8,7 @@
     <p>Add your mailbox and configure settings below:</p>
 
     <!-- Form for adding mailboxes -->
-    <form id="mailboxForm" method="POST" action="{{ url_for('mailbox.manage_mailboxes') }}"> <!-- Corrected form action -->
+    <form id="mailboxForm" method="POST" action="{{ url_for('mailbox.manage_mailboxes') }}">
         {{ form.hidden_tag() }}
 
         <div class="mb-3">
@@ -23,6 +23,16 @@
         <div class="mb-3">
             <label for="username" class="form-label">Username (Left part of email address)</label>
             {{ form.username(class="form-control", id="username", placeholder="e.g., firstname") }}
+        </div>
+
+        <div class="mb-3">
+            <label for="full_name" class="form-label">Full Name</label>
+            {{ form.full_name(class="form-control", id="full_name", placeholder="e.g., John Doe") }}
+        </div>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            {{ form.password(class="form-control", id="password", type="password", placeholder="Enter a strong password") }}
         </div>
 
         <div class="mb-3">
@@ -63,16 +73,34 @@
         {% for mailbox in mailboxes %}
             <li class="mailbox-item">
                 <p><strong>Email Address:</strong> {{ mailbox.email_address }}</p>
+                <p><strong>Full Name:</strong> {{ mailbox.full_name }}</p>
                 <p><strong>Email Signature:</strong> {{ mailbox.email_signature }}</p>
 
+                <!-- Show status of mailbox creation in server and SmartLead -->
+<p><strong>Status:</strong> 
+    <span class="text-success">
+        {% if mailbox.added_to_server %}
+            Added to Server ✅
+        {% else %}
+            <span class="text-danger">Not Added to Server ❌</span>
+        {% endif %}
+    </span>
+    <span class="text-success">
+        {% if mailbox.added_to_smartlead %}
+            Added to SmartLead ✅
+        {% else %}
+            <span class="text-danger">Not Added to SmartLead ❌</span>
+        {% endif %}
+    </span>
+</p>
                 <!-- Delete button form -->
                 <form method="POST" action="{{ url_for('mailbox.delete_mailbox', mailbox_id=mailbox.id) }}" style="display:inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                 </form>
 
-                <!-- Placeholder for Webmail button -->
-                <a href="#" class="btn btn-secondary btn-sm">Webmail</a> <!-- Link to SOGO or similar webmail -->
+                <!-- Webmail button -->
+                <a href="https://mail.trycpd.com/SOGo/so/{{ mailbox.email_address }}" class="btn btn-secondary btn-sm" target="_blank">Webmail</a>
             </li>
             <hr>
         {% else %}

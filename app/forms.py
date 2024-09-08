@@ -31,7 +31,10 @@ class DomainForm(FlaskForm):
 # Updated form for adding mailboxes
 class MailboxForm(FlaskForm):
     domain_id = SelectField('Select Domain', coerce=int, validators=[DataRequired()])  # Populated from existing domains
-    username = StringField('Username (left part of the email address)', validators=[DataRequired()])  # Replace Mailbox name and email format
+    username = StringField('Username (left part of the email address)', validators=[DataRequired(), Length(min=1, max=100)])  # Left part of the email
+    
+    full_name = StringField('Full Name', validators=[DataRequired(), Length(min=1, max=100)])  # Full name input
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])  # Password field
     
     email_signature = TextAreaField('Email Signature (customizable, supports HTML)', validators=[DataRequired()])  # Allow HTML input
     
