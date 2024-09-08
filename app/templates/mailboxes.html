@@ -64,7 +64,15 @@
             <li class="mailbox-item">
                 <p><strong>Email Address:</strong> {{ mailbox.email_address }}</p>
                 <p><strong>Email Signature:</strong> {{ mailbox.email_signature }}</p>
-                <!-- Buttons for editing or deleting a mailbox can be added later -->
+
+                <!-- Delete button form -->
+                <form method="POST" action="{{ url_for('main.delete_mailbox', mailbox_id=mailbox.id) }}" style="display:inline;">
+                    {{ form.csrf_token }}
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+
+                <!-- Placeholder for Webmail button -->
+                <a href="#" class="btn btn-secondary btn-sm">Webmail</a>
             </li>
             <hr>
         {% else %}

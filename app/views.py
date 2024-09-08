@@ -261,6 +261,21 @@ def mailboxes():
 
     return render_template('mailboxes.html', form=form, domains=user_domains, mailboxes=user_mailboxes)
 
+# Route to delete a mailbox
+@main.route('/delete_mailbox/<int:mailbox_id>', methods=['POST'])
+@login_required
+def delete_mailbox(mailbox_id):
+    mailbox = Mailbox.query.get_or_404(mailbox_id)
+
+    if mailbox.user_id != current_user.id:
+        flash('You are not authorized to delete this mailbox.', 'danger')
+        return redirect(url_for('main.mailboxes'))
+
+    db.session.delete(mailbox)
+    db.session.commit()
+    flash('Mailbox deleted successfully!', 'success')
+    return redirect(url_for('main.mailboxes'))
+
 # Context processor for adding the navigation bar to every page
 @main.app_context_processor
 def inject_navigation():
