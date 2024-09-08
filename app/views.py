@@ -2,8 +2,8 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
-from app.models import User, Domain  # Make sure Domain model is added
-from app.forms import LoginForm, RegisterForm, SettingsForm, DomainForm  # Import DomainForm
+from app.models import User, Domain, Mailbox  # Added Mailbox model
+from app.forms import LoginForm, RegisterForm, SettingsForm, DomainForm, MailboxForm  # Import MailboxForm
 import stripe
 
 # Define the blueprint for the main app
@@ -224,10 +224,42 @@ def verify_domain(domain_id):
     return redirect(verify_url)
 
 # Route to manage mailboxes
-@main.route('/mailboxes')
+@main.route('/mailboxes', methods=['GET', 'POST'])
 @login_required
 def mailboxes():
-    return render_template('mailboxes.html')
+    form = MailboxForm()
+    
+    # Get the domains for the current user
+    user_domains = Domain.query.filter_by(user_id=current_user.id).all()
+    form.domain_id.choices = [(domain.id, domain.domain) for domain in user_domains]  # Populate domain choices in the form
+
+    if form.validate_on_submit():
+        # Construct the email format using the domain and username
+        domain = Domain.query.get(form.domain_id.data)
+        email_address = f"{form.username.data}@{domain.domain}"
+        
+        # Save the mailbox to the database
+        new_mailbox = Mailbox(
+            user_id=current_user.id,
+            domain_id=form.domain_id.data,  # Associate mailbox with the selected domain
+            email_address=email_address,  # Constructed email address
+            email_signature=form.email_signature.data,
+            message_per_day=form.message_per_day.data,
+            minimum_time_gap=form.minimum_time_gap.data,
+            total_warmup_per_day=form.total_warmup_per_day.data,
+            daily_rampup=form.daily_rampup.data,
+            reply_rate_percentage=form.reply_rate_percentage.data
+        )
+        db.session.add(new_mailbox)
+        db.session.commit()
+
+        flash('Mailbox added successfully!', 'success')
+        return redirect(url_for('main.mailboxes'))
+
+    # Fetch user's mailboxes to display
+    user_mailboxes = Mailbox.query.filter_by(user_id=current_user.id).all()
+
+    return render_template('mailboxes.html', form=form, domains=user_domains, mailboxes=user_mailboxes)
 
 # Context processor for adding the navigation bar to every page
 @main.app_context_processor

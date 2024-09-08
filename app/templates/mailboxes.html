@@ -3,10 +3,73 @@
 {% block title %}Mailboxes | MassMailbox{% endblock %}
 
 {% block content %}
+<div class="container mt-5">
     <h1>Mailbox Management</h1>
-    <p>This is the mailboxes management page where users will be able to manage mailboxes linked to their domains.</p>
-    <p>Features like adding, editing, and deleting mailboxes will be implemented here.</p>
+    <p>Add your mailbox and configure settings below:</p>
 
-    <!-- Placeholder button for adding a mailbox -->
-    <a class="btn btn-primary" href="#">Add Mailbox</a>
+    <!-- Form for adding mailboxes -->
+    <form id="mailboxForm" method="POST" action="{{ url_for('main.mailboxes') }}">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            <label for="domain" class="form-label">Domain</label>
+            <select class="form-control" id="domain" name="domain_id">
+                {% for domain in domains %}
+                    <option value="{{ domain.id }}">{{ domain.domain }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="username" class="form-label">Username (Left part of email address)</label>
+            {{ form.username(class="form-control", id="username", placeholder="e.g., firstname") }}
+        </div>
+
+        <div class="mb-3">
+            <label for="email_signature" class="form-label">Email Signature (Supports HTML)</label>
+            {{ form.email_signature(class="form-control", id="email_signature") }}
+        </div>
+
+        <div class="mb-3">
+            <label for="message_per_day" class="form-label">Messages Per Day</label>
+            {{ form.message_per_day(class="form-control", id="message_per_day") }}
+        </div>
+
+        <div class="mb-3">
+            <label for="minimum_time_gap" class="form-label">Minimum Time Gap (in minutes)</label>
+            {{ form.minimum_time_gap(class="form-control", id="minimum_time_gap") }}
+        </div>
+
+        <div class="mb-3">
+            <label for="total_warmup_per_day" class="form-label">Total Warmup Emails Per Day</label>
+            {{ form.total_warmup_per_day(class="form-control", id="total_warmup_per_day") }}
+        </div>
+
+        <div class="mb-3">
+            <label for="daily_rampup" class="form-label">Daily Rampup</label>
+            {{ form.daily_rampup(class="form-control", id="daily_rampup") }}
+        </div>
+
+        <div class="mb-3">
+            <label for="reply_rate_percentage" class="form-label">Reply Rate Percentage</label>
+            {{ form.reply_rate_percentage(class="form-control", id="reply_rate_percentage") }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Mailbox</button>
+    </form>
+
+    <h2 class="mt-5">Your Mailboxes</h2>
+    <ul id="mailboxList">
+        {% for mailbox in mailboxes %}
+            <li class="mailbox-item">
+                <p><strong>Email Address:</strong> {{ mailbox.email_address }}</p>
+                <p><strong>Email Signature:</strong> {{ mailbox.email_signature }}</p>
+                <!-- Buttons for editing or deleting a mailbox can be added later -->
+            </li>
+            <hr>
+        {% else %}
+            <li>No mailboxes added yet.</li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}
