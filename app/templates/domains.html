@@ -8,7 +8,7 @@
     <p>Add your domain and configure Cloudflare and forwarding settings below:</p>
 
     <!-- Form for adding domains -->
-    <form id="domainForm" method="POST" action="{{ url_for('main.domains') }}">
+    <form id="domainForm" method="POST" action="{{ url_for('domain.manage_domains') }}"> <!-- Corrected form action -->
         {{ form.hidden_tag() }}
         <div class="mb-3">
             <label for="domain" class="form-label">Domain</label>
@@ -41,7 +41,7 @@
 
                 <!-- Buttons for Verify and Delete -->
                 <a class="btn btn-secondary" href="https://mxtoolbox.com/emailhealth/{{ domain.domain }}" target="_blank">Verify</a>
-                <form method="POST" action="{{ url_for('main.delete_domain', domain_id=domain.id) }}" style="display:inline;">
+                <form method="POST" action="{{ url_for('domain.delete_domain', domain_id=domain.id) }}" style="display:inline;"> <!-- Corrected domain delete route -->
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger">Delete</button>
                 </form>

@@ -2,7 +2,7 @@
 {% block title %}Login{% endblock %}
 {% block content %}
 <h1>Login Page</h1>
-<form method="POST" action="{{ url_for('main.login') }}">
+<form method="POST" action="{{ url_for('auth.login') }}"> <!-- Correct login route -->
     {{ form.hidden_tag() }}
     <div class="form-group">
         {{ form.email.label }}

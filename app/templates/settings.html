@@ -6,7 +6,7 @@
     <h1>Settings</h1>
     <p>Manage your Cloudflare and Smartlead API credentials here.</p>
 
-    <form method="POST">
+    <form method="POST" action="{{ url_for('dashboard.settings') }}"> <!-- Corrected form action -->
         {{ form.hidden_tag() }}
         
         <div class="mb-3">

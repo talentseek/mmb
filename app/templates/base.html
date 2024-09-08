@@ -9,22 +9,22 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">MassMailbox</a>
+            <a class="navbar-brand" href="{{ url_for('auth.index') }}">MassMailbox</a>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     {% if current_user.is_authenticated %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.settings') }}">Settings</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.domains') }}">Domains</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.mailboxes') }}">Mailboxes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard.dashboard_view') }}">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard.settings') }}">Settings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('domain.manage_domains') }}">Domains</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('mailbox.manage_mailboxes') }}">Mailboxes</a></li>
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
                     {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.login') }}">Login</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.signup') }}">Sign Up</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.signup') }}">Sign Up</a></li>
                     {% endif %}
                 </ul>
             </div>

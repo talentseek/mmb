@@ -11,23 +11,23 @@
             <h2>Your current subscription</h2>
             <p><strong>Plan:</strong> {{ plan_name }}</p>
             <p><strong>Status:</strong> {{ current_user.subscription_status }}</p>
-            <a class="btn btn-primary" href="{{ url_for('main.billing') }}">Manage Billing</a>
+            <a class="btn btn-primary" href="{{ url_for('dashboard.billing') }}">Manage Billing</a>
         {% else %}
             <h2>Subscription Options</h2>
             <p>You do not have an active subscription. Please select a plan below:</p>
             <ul>
                 <li>
-                    <a class="btn btn-outline-primary" href="{{ url_for('main.checkout', plan_id=stripe_basic_plan_id) }}">
+                    <a class="btn btn-outline-primary" href="{{ url_for('dashboard.checkout', plan_id=stripe_basic_plan_id) }}">
                         Subscribe to Basic Plan ($49)
                     </a>
                 </li>
                 <li>
-                    <a class="btn btn-outline-primary" href="{{ url_for('main.checkout', plan_id=stripe_pro_plan_id) }}">
+                    <a class="btn btn-outline-primary" href="{{ url_for('dashboard.checkout', plan_id=stripe_pro_plan_id) }}">
                         Subscribe to Pro Plan ($99)
                     </a>
                 </li>
                 <li>
-                    <a class="btn btn-outline-primary" href="{{ url_for('main.checkout', plan_id=stripe_expert_plan_id) }}">
+                    <a class="btn btn-outline-primary" href="{{ url_for('dashboard.checkout', plan_id=stripe_expert_plan_id) }}">
                         Subscribe to Expert Plan ($179)
                     </a>
                 </li>
@@ -39,18 +39,18 @@
         {% if missing_credentials %}
         <h2>Settings</h2>
         <p>Manage your Cloudflare and Smartlead API credentials here:</p>
-        <a class="btn btn-secondary" href="{{ url_for('main.settings') }}">Settings</a>
+        <a class="btn btn-secondary" href="{{ url_for('dashboard.settings') }}">Settings</a>
         <hr>
         {% endif %}
 
         <h2>Domain Management</h2>
         <p>Manage your domains:</p>
-        <a class="btn btn-secondary" href="{{ url_for('main.domains') }}">Add Domains</a>
+        <a class="btn btn-secondary" href="{{ url_for('domain.manage_domains') }}">Add Domains</a>
 
         <hr>
 
         <h2>Mailbox Management</h2>
         <p>Manage your mailboxes:</p>
-        <a class="btn btn-secondary" href="{{ url_for('main.mailboxes') }}">Add Mailboxes</a>
+        <a class="btn btn-secondary" href="{{ url_for('mailbox.manage_mailboxes') }}">Add Mailboxes</a>
     </div>
 {% endblock %}

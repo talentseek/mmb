@@ -16,7 +16,7 @@ def create_app():
 
     db.init_app(app)
     login_manager.init_app(app)
-    login_manager.login_view = 'main.login'
+    login_manager.login_view = 'auth.login'  # Update the login view to auth
 
     # Set Stripe API key within the application context
     with app.app_context():
@@ -29,8 +29,17 @@ def create_app():
     csrf.init_app(app)
 
     # Register Blueprints
-    from app.views import main as main_blueprint
-    app.register_blueprint(main_blueprint)
+    from app.views.auth_views import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint)
+
+    from app.views.dashboard_views import dashboard as dashboard_blueprint
+    app.register_blueprint(dashboard_blueprint)
+
+    from app.views.domain_views import domain as domain_blueprint
+    app.register_blueprint(domain_blueprint)
+
+    from app.views.mailbox_views import mailbox as mailbox_blueprint
+    app.register_blueprint(mailbox_blueprint)
 
     return app
 

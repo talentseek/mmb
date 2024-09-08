@@ -8,7 +8,7 @@
     <p>Add your mailbox and configure settings below:</p>
 
     <!-- Form for adding mailboxes -->
-    <form id="mailboxForm" method="POST" action="{{ url_for('main.mailboxes') }}">
+    <form id="mailboxForm" method="POST" action="{{ url_for('mailbox.manage_mailboxes') }}"> <!-- Corrected form action -->
         {{ form.hidden_tag() }}
 
         <div class="mb-3">
@@ -66,13 +66,13 @@
                 <p><strong>Email Signature:</strong> {{ mailbox.email_signature }}</p>
 
                 <!-- Delete button form -->
-                <form method="POST" action="{{ url_for('main.delete_mailbox', mailbox_id=mailbox.id) }}" style="display:inline;">
-                    {{ form.csrf_token }}
+                <form method="POST" action="{{ url_for('mailbox.delete_mailbox', mailbox_id=mailbox.id) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                 </form>
 
                 <!-- Placeholder for Webmail button -->
-                <a href="#" class="btn btn-secondary btn-sm">Webmail</a>
+                <a href="#" class="btn btn-secondary btn-sm">Webmail</a> <!-- Link to SOGO or similar webmail -->
             </li>
             <hr>
         {% else %}
