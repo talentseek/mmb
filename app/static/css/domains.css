@@ -1,0 +1,54 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+}
+
+.container {
+    margin-top: 50px;
+}
+
+.btn-add-domain {
+    background-color: #0d6efd;
+    color: #fff;
+    border-radius: 30px;
+    padding: 10px 20px;
+}
+
+.btn-add-domain:hover {
+    background-color: #0b5ed7;
+}
+
+.domain-table td,
+.domain-table th {
+    vertical-align: middle;
+}
+
+.btn-health,
+.btn-dns,
+.btn-delete {
+    margin-right: 10px;
+}
+
+.btn-health {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.btn-dns {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.btn-health:hover,
+.btn-dns:hover {
+    opacity: 0.9;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+}

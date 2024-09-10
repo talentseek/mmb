@@ -3,62 +3,250 @@
 {% block title %}Domains | MassMailbox{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1>Domain Management</h1>
-    <p>Add your domain and configure Cloudflare and forwarding settings below:</p>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Manage Your Domains</h2>
+        <!-- Check if account ID is being populated -->
+        <button class="btn btn-add-domain" data-bs-toggle="modal" data-bs-target="#addDomainModal">
+            <i class="fas fa-plus-circle"></i> Add New Domain
+        </button>
+    </div>
 
-    <!-- Form for adding domains -->
-    <form id="domainForm" method="POST" action="{{ url_for('domain.manage_domains') }}"> <!-- Corrected form action -->
-        {{ form.hidden_tag() }}
-        <div class="mb-3">
-            <label for="domain" class="form-label">Domain</label>
-            {{ form.domain(class="form-control", id="domain", placeholder="example.com") }}
-        </div>
+    <!-- Hoverable Table for Domains -->
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover domain-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Domain</th>
+                        <th scope="col">Cloudflare Zone ID</th>
+                        <th scope="col">Forwarding To</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for domain in domains %}
+                        <tr>
+                            <td>{{ domain.domain }}</td>
+                            <td>{{ domain.cloudflare_zone_id }}</td>
+                            <td><a href="{{ domain.forwarding_url }}" target="_blank">{{ domain.forwarding_url }}</a></td>
+                            <td>
+                                {% if domain.added_to_server %}
+                                    <span class="badge bg-success">Added to Server ✅</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pending Server Addition ⚠</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="https://mxtoolbox.com/emailhealth/{{ domain.domain }}" target="_blank" class="btn btn-sm btn-health">
+                                    <i class="fas fa-heartbeat"></i> Domain Health
+                                </a>
+                                
+                                <!-- DNS Button with SweetAlert -->
+        <!--                         <button class="btn btn-sm btn-dns" data-dns-url="https://dash.cloudflare.com/{{ current_user.cloudflare_account_id }}/{{ domain.domain }}/dns/records">
+                                    <i class="fas fa-globe"></i> DNS
+                                </button> -->
 
-        <div class="mb-3">
-            <label for="zoneId" class="form-label">Cloudflare Zone ID 
-                <span class="info-icon" data-bs-toggle="tooltip" title="Where to find this?">ℹ</span>
-            </label>
-            {{ form.cloudflare_zone_id(class="form-control", id="zoneId", placeholder="Cloudflare Zone ID") }}
-            <span class="tooltip-text">You can find your Cloudflare Zone ID under your domain settings in Cloudflare. It's listed under the 'Overview' tab.</span>
-        </div>
-
-        <div class="mb-3">
-            <label for="forwardingUrl" class="form-label">Forwarding URL</label>
-            {{ form.forwarding_url(class="form-control", id="forwardingUrl", placeholder="https://your-forwarding-url.com") }}
-        </div>
-
-        <button type="submit" class="btn btn-primary">Add Domain</button>
-    </form>
-
-    <h2 class="mt-5">Your Domains</h2>
-    <ul id="domainList">
-        {% for domain in domains %}
-            <li class="domain-item">
-                <p><strong>Domain:</strong> {{ domain.domain }}</p>
-                <p><strong>Cloudflare Zone ID:</strong> {{ domain.cloudflare_zone_id }}</p>
-                <p><strong>Forwarding to:</strong> {{ domain.forwarding_url }}</p>
-
-                <!-- Show the status of domain being added to the server -->
-                <p><strong>Status:</strong> 
-                    {% if domain.added_to_server %}
-                        <span class="text-success">Added to Server ✅</span>
+                                <!-- Delete Domain Form -->
+                                <form method="POST" action="{{ url_for('domain.delete_domain', domain_id=domain.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-delete"><i class="fas fa-trash"></i> Delete</button>
+                                </form>
+                            </td>
+                        </tr>
                     {% else %}
-                        <span class="text-warning">Pending Server Addition ⚠</span>
-                    {% endif %}
-                </p>
-
-                <!-- Buttons for Verify and Delete -->
-                <a class="btn btn-secondary" href="https://mxtoolbox.com/emailhealth/{{ domain.domain }}" target="_blank">Verify</a>
-                <form method="POST" action="{{ url_for('domain.delete_domain', domain_id=domain.id) }}" style="display:inline;"> <!-- Corrected domain delete route -->
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </li>
-            <hr>
-        {% else %}
-            <li>No domains added yet.</li>
-        {% endfor %}
-    </ul>
+                        <tr>
+                            <td colspan="5">No domains added yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+<!-- Add Domain Modal -->
+<div class="modal fade" id="addDomainModal" tabindex="-1" aria-labelledby="addDomainModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addDomainModalLabel">Add New Domain</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addDomainForm" method="POST" action="{{ url_for('domain.manage_domains') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="domainInput" class="form-label">Domain</label>
+                        {{ form.domain(class="form-control", id="domainInput", placeholder="example.com", required=True) }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="zoneIdInput" class="form-label">Cloudflare Zone ID</label>
+                        {{ form.cloudflare_zone_id(class="form-control", id="zoneIdInput", placeholder="Cloudflare Zone ID", required=True) }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="forwardingUrlInput" class="form-label">Forwarding URL</label>
+                        {{ form.forwarding_url(class="form-control", id="forwardingUrlInput", placeholder="https://your-forwarding-url.com", required=True) }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="confirmAddDomain" class="btn btn-primary">Add Domain</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal with Status -->
+<div class="modal fade" id="loadingModal" tabindex="-1" aria-labelledby="loadingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loadingModalLabel">Domain Addition In Progress</h5>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <p id="statusMessage">Domain addition in progress. Please wait...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/domains.css') }}">
+{% endblock %}
+
+{% block scripts %}
+<!-- Ensure Bootstrap JS and SweetAlert are included -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.0/dist/sweetalert2.all.min.js"></script>
+
+<script>
+    // Form Validation for Add Domain Modal
+    document.getElementById('confirmAddDomain').addEventListener('click', function () {
+        var domainInput = document.getElementById('domainInput');
+        var zoneIdInput = document.getElementById('zoneIdInput');
+        var forwardingUrlInput = document.getElementById('forwardingUrlInput');
+
+        // Check if fields are empty
+        if (domainInput.value === '' || zoneIdInput.value === '' || forwardingUrlInput.value === '') {
+            Swal.fire({
+                title: 'Error',
+                text: 'All fields are required!',
+                icon: 'error',
+                confirmButtonText: 'Ok'
+            });
+            return;
+        }
+
+        // Validate Zone ID format (32 characters, alphanumeric)
+        var zoneIdPattern = /^[a-f0-9]{32}$/;
+        if (!zoneIdPattern.test(zoneIdInput.value)) {
+            Swal.fire({
+                title: 'Invalid Zone ID',
+                text: 'Please provide a valid Cloudflare Zone ID (32 alphanumeric characters).',
+                icon: 'error',
+                confirmButtonText: 'Ok'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Adding a new domain will erase all existing DNS records for that domain. Do you want to proceed?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, add it!',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#d33'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var addDomainModal = new bootstrap.Modal(document.getElementById('addDomainModal'));
+                addDomainModal.hide();
+
+                var loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+                loadingModal.show();
+
+                simulateProcessSteps(); // Show step messages
+                submitForm();  // Trigger the backend process
+            }
+        });
+    });
+
+    // DNS SweetAlert for the DNS button
+    // document.querySelectorAll('.btn-dns').forEach(function (dnsButton) {
+    //     dnsButton.addEventListener('click', function () {
+    //         var dnsUrl = this.getAttribute('data-dns-url');
+    //         Swal.fire({
+    //             title: 'Warning!',
+    //             text: "We do not recommend making changes to your DNS unless you know what you're doing. Do you want to proceed?",
+    //             icon: 'warning',
+    //             showCancelButton: true,
+    //             confirmButtonText: 'Proceed',
+    //             cancelButtonText: 'Cancel',
+    //             confirmButtonColor: '#28a745',
+    //             cancelButtonColor: '#d33'
+    //         }).then((result) => {
+    //             if (result.isConfirmed) {
+    //                 window.open(dnsUrl, '_blank');
+    //             }
+    //         });
+    //     });
+    // });
+
+    function submitForm() {
+        var formData = new FormData(document.getElementById('addDomainForm'));
+
+        fetch('{{ url_for("domain.manage_domains") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                document.getElementById('statusMessage').innerText = 'Failed to add domain!';
+            }
+        });
+    }
+
+    // Simulated step-by-step process (40 seconds)
+    function simulateProcessSteps() {
+        var steps = [
+            "Adding domain to Mail Server...",
+            "Domain added to Mail Server successfully.",
+            "Retrieving DKIM key...",
+            "DKIM key retrieved successfully.",
+            "Clearing DNS records in Cloudflare...",
+            "DNS records cleared for Cloudflare.",
+            "Adding DNS records to Cloudflare...",
+            "DNS records added successfully.",
+            "Adding forwarding rule to Cloudflare...",
+            "Forwarding rule added successfully."
+        ];
+
+        var statusMessage = document.getElementById('statusMessage');
+        var currentStep = 0;
+
+        var interval = setInterval(function() {
+            statusMessage.innerText = steps[currentStep];
+            currentStep++;
+
+            if (currentStep >= steps.length) {
+                clearInterval(interval);
+                setTimeout(function() {
+                    location.reload();
+                }, 1000); // Reload the page after the last message
+            }
+        }, 5000); // Spread out the steps evenly over 40 seconds (8 steps, 5 seconds each)
+    }
+</script>
 {% endblock %}

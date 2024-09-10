@@ -1,6 +1,6 @@
 import time
 import requests
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, jsonify, session
 from flask_login import login_required, current_user
 from app.models import Domain
 from app.forms import DomainForm
@@ -12,9 +12,15 @@ domain = Blueprint('domain', __name__)
 def log_error(message):
     print(f"Error: {message}")
 
+# Helper function to update session status
+def update_status(status_message):
+    session['domain_status'] = status_message
+    print(f"Status Updated: {status_message}")
+
 # Add domain to Mailcow
 def add_domain_to_mailcow(domain):
     """Add domain to Mailcow instance."""
+    update_status("Adding domain to Mailcow...")
     MAILCOW_API_ENDPOINT = "https://mail.trycpd.com/api/v1/"
     MAILCOW_API_KEY = "2035F6-3A8156-CCB4CD-58FCCF-D22BF8"
     
@@ -42,15 +48,17 @@ def add_domain_to_mailcow(domain):
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
-        print(f"Domain {domain} added to Mailcow successfully.")
+        update_status(f"Domain {domain} added to Mailcow successfully.")
         return True
     except requests.exceptions.RequestException as e:
         log_error(f"Failed to add domain {domain} to Mailcow: {e}")
+        update_status("Failed to add domain to Mailcow.")
         return False
 
 # Retrieve DKIM key from Mailcow
 def get_dkim_key(domain):
     """Retrieve the DKIM key for the specified domain from Mailcow."""
+    update_status("Retrieving DKIM key...")
     MAILCOW_API_ENDPOINT = "https://mail.trycpd.com/api/v1/"
     MAILCOW_API_KEY = "2035F6-3A8156-CCB4CD-58FCCF-D22BF8"
 
@@ -63,15 +71,17 @@ def get_dkim_key(domain):
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         dkim_data = response.json()
-        print(f"DKIM Key for {domain} retrieved successfully.")
+        update_status("DKIM key retrieved successfully.")
         return dkim_data
     except requests.exceptions.RequestException as e:
         log_error(f"Failed to retrieve DKIM key for {domain}: {e}")
+        update_status("Failed to retrieve DKIM key.")
         return None
 
 # Clear DNS records in Cloudflare
 def clear_cloudflare_records(zone_id):
     """Clear all existing DNS records in Cloudflare for the specified zone ID."""
+    update_status("Clearing DNS records in Cloudflare...")
     CLOUDFLARE_API_EMAIL = current_user.cloudflare_email
     CLOUDFLARE_API_KEY = current_user.cloudflare_api_key
 
@@ -88,16 +98,18 @@ def clear_cloudflare_records(zone_id):
         for record in dns_records:
             delete_response = requests.delete(f"https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records/{record['id']}", headers=headers)
             delete_response.raise_for_status()
-        
-        print(f"All DNS records cleared for zone ID {zone_id}.")
+
+        update_status(f"DNS records cleared for zone ID {zone_id}.")
         return True
     except requests.exceptions.RequestException as e:
         log_error(f"Failed to clear DNS records for zone ID {zone_id}: {e}")
+        update_status("Failed to clear DNS records.")
         return False
 
 # Add DNS records to Cloudflare
 def add_dns_records_to_cloudflare(domain, zone_id, dkim_txt_record):
     """Add necessary DNS records for the domain to Cloudflare."""
+    update_status("Adding DNS records to Cloudflare...")
     CLOUDFLARE_API_EMAIL = current_user.cloudflare_email
     CLOUDFLARE_API_KEY = current_user.cloudflare_api_key
 
@@ -133,9 +145,10 @@ def add_dns_records_to_cloudflare(domain, zone_id, dkim_txt_record):
         try:
             response = requests.post(f"https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records", headers=headers, json=data)
             response.raise_for_status()
-            print(f"DNS record {record['type']} for {record['name']} added successfully.")
+            update_status(f"DNS record {record['type']} for {record['name']} added successfully.")
         except requests.exceptions.RequestException as e:
             log_error(f"Failed to add DNS record {record['type']} for {record['name']}: {e}")
+            update_status(f"Failed to add DNS record {record['type']}.")
             return False
 
     return True
@@ -170,6 +183,7 @@ def delete_existing_page_rules(zone_id):
 # Add forwarding rule to Cloudflare
 def add_forwarding_rule(zone_id, domain, forwarding_url):
     """Create a forwarding rule in Cloudflare."""
+    update_status(f"Adding forwarding rule for {domain}.")
     CLOUDFLARE_API_EMAIL = current_user.cloudflare_email
     CLOUDFLARE_API_KEY = current_user.cloudflare_api_key
 
@@ -201,10 +215,11 @@ def add_forwarding_rule(zone_id, domain, forwarding_url):
     try:
         response = requests.post(f"https://api.cloudflare.com/client/v4/zones/{zone_id}/pagerules", headers=headers, json=data)
         response.raise_for_status()
-        print(f"Forwarding rule for {domain} added successfully.")
+        update_status(f"Forwarding rule for {domain} added successfully.")
         return True
     except requests.exceptions.RequestException as e:
         log_error(f"Failed to create forwarding rule for {domain}: {e}")
+        update_status(f"Failed to create forwarding rule for {domain}.")
         return False
 
 # Route to manage domains
@@ -214,12 +229,10 @@ def manage_domains():
     form = DomainForm()
 
     if form.validate_on_submit():
-        # Step 1: Add domain to Mailcow
-        print(f"Starting process for adding domain {form.domain.data} to Mailcow.")
+        session['domain_status'] = "Initializing domain addition..."
+
+        # Add domain to Mailcow
         if add_domain_to_mailcow(form.domain.data):
-            print(f"Domain {form.domain.data} added to Mailcow. Proceeding to DNS configuration.")
-            
-            # Step 2: Retrieve DKIM key after waiting
             time.sleep(5)
             dkim_data = get_dkim_key(form.domain.data)
             if not dkim_data:
@@ -227,27 +240,10 @@ def manage_domains():
                 return redirect(url_for('domain.manage_domains'))
 
             dkim_txt_record = dkim_data.get('dkim_txt', 'Not Available')
-            print(f"DKIM key retrieved: {dkim_txt_record}")
-
-            # Step 3: Clear existing DNS records in Cloudflare
-            print(f"Clearing existing DNS records in Cloudflare for domain {form.domain.data}.")
             if clear_cloudflare_records(form.cloudflare_zone_id.data):
-                
-                # Step 4: Add DNS records to Cloudflare
-                print(f"Adding DNS records for domain {form.domain.data}.")
                 if add_dns_records_to_cloudflare(form.domain.data, form.cloudflare_zone_id.data, dkim_txt_record):
-                    print(f"DNS records for {form.domain.data} added successfully.")
-                    
-                    # Step 5: Delete existing page rules in Cloudflare
-                    print(f"Deleting existing page rules for domain {form.domain.data}.")
                     if delete_existing_page_rules(form.cloudflare_zone_id.data):
-                        
-                        # Step 6: Add forwarding rule to Cloudflare
-                        print(f"Adding forwarding rule for domain {form.domain.data}.")
                         if add_forwarding_rule(form.cloudflare_zone_id.data, form.domain.data, form.forwarding_url.data):
-                            print(f"Forwarding rule for {form.domain.data} added successfully.")
-                            
-                            # Save the domain to the database after successful DNS and forwarding rule configuration
                             new_domain = Domain(
                                 user_id=current_user.id,
                                 domain=form.domain.data,
@@ -259,21 +255,17 @@ def manage_domains():
                             db.session.commit()
 
                             flash('Domain added successfully with DNS and forwarding rule!', 'success')
+                            return redirect(url_for('domain.manage_domains'))
                         else:
                             flash('Failed to create forwarding rule in Cloudflare.', 'danger')
-                            print(f"Failed to add forwarding rule for domain {form.domain.data}.")
                     else:
                         flash('Failed to delete existing page rules in Cloudflare.', 'danger')
-                        print(f"Failed to delete existing page rules for domain {form.domain.data}.")
                 else:
                     flash('Failed to set DNS records in Cloudflare.', 'danger')
-                    print(f"Failed to set DNS records for domain {form.domain.data}.")
             else:
                 flash('Failed to clear DNS records in Cloudflare.', 'danger')
-                print(f"Failed to clear DNS records for domain {form.domain.data}.")
         else:
             flash('Failed to add domain to Mailcow.', 'danger')
-            print(f"Failed to add domain {form.domain.data} to Mailcow.")
 
         return redirect(url_for('domain.manage_domains'))
 
@@ -294,3 +286,9 @@ def delete_domain(domain_id):
     db.session.commit()
     flash('Domain deleted successfully!', 'success')
     return redirect(url_for('domain.manage_domains'))
+
+# Route to fetch domain addition status
+@domain.route('/domain-status', methods=['GET'])
+@login_required
+def domain_status():
+    return jsonify({'status': session.get('domain_status', 'No status available')})

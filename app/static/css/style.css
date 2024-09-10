@@ -1,0 +1,91 @@
+/* General Styles */
+body {
+    background-color: #0a2740;
+    color: white;
+    font-family: 'Manrope', sans-serif;
+}
+
+.navbar-brand {
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.navbar-nav .nav-link {
+    color: white;
+    margin-left: 40px; /* Increase spacing between links */
+    font-size: 1.1rem;
+}
+
+.navbar-nav .nav-link.active {
+    color: #85a8ff; /* Lighter blue for Home active link */
+}
+
+.navbar-nav .btn-signup {
+    background-color: white;
+    color: #0a2740;
+    border-radius: 30px;
+    padding: 12px 80px; /* Resized the sign-up button */
+    font-weight: bold;
+}
+
+.navbar-nav .btn-signup:hover {
+    background-color: #e5e5e5;
+    color: #0a2740;
+}
+
+/* Transparent navbar initially */
+.transparent-navbar {
+    background-color: transparent;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.sticky-navbar {
+    background-color: #0a2740; /* Make it solid once scrolling */
+}
+
+/* Hero Section */
+.hero {
+    position: relative;
+    overflow: hidden;
+    padding-top: 100px; /* Ensure enough space for sticky navigation */
+}
+
+.hero-bg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    z-index: 1; /* Background image stays behind */
+}
+
+.hero-graphics {
+    width: 100%;
+    position: relative;
+    z-index: 2; /* Graphics image comes in front of the background */
+}
+
+.hero-content {
+    padding: 100px 0;
+    z-index: 2;
+    position: relative;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    margin: 20px 0;
+}
+
+/* CTA Button */
+.btn-cta {
+    background-color: #1572e8;
+    border-radius: 50px;
+    font-size: 1.25rem;
+    padding: 15px 210px; /* Adjusted button size for a more balanced width */
+    width: auto;
+}
