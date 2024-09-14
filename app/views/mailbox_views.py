@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models import Domain, Mailbox
+from app.models.domain import Domain
+from app.models.mailbox import Mailbox
 from app.forms import MailboxForm
 from app import db
 import requests

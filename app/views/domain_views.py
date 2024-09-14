@@ -2,7 +2,7 @@ import time
 import requests
 from flask import Blueprint, render_template, redirect, url_for, flash, jsonify, session
 from flask_login import login_required, current_user
-from app.models import Domain
+from app.models.domain import Domain
 from app.forms import DomainForm
 from app import db
 

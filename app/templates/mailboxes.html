@@ -4,108 +4,120 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1>Mailbox Management</h1>
-    <p>Add your mailbox and configure settings below:</p>
+    <h2>Manage Your Mailboxes</h2>
 
-    <!-- Form for adding mailboxes -->
-    <form id="mailboxForm" method="POST" action="{{ url_for('mailbox.manage_mailboxes') }}">
-        {{ form.hidden_tag() }}
+    <!-- Button to open Add Mailbox Modal -->
+    <button class="btn btn-add-mailbox mb-4" data-bs-toggle="modal" data-bs-target="#addMailboxModal">
+        <i class="fas fa-plus-circle"></i> Add New Mailbox
+    </button>
 
-        <div class="mb-3">
-            <label for="domain" class="form-label">Domain</label>
-            <select class="form-control" id="domain" name="domain_id">
-                {% for domain in domains %}
-                    <option value="{{ domain.id }}">{{ domain.domain }}</option>
-                {% endfor %}
-            </select>
+    <!-- Hoverable Table for Mailboxes -->
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover mailbox-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Email Address</th>
+                        <th scope="col">Full Name</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mailbox in mailboxes %}
+                        <tr>
+                            <td>{{ mailbox.email_address }}</td>
+                            <td>{{ mailbox.full_name }}</td>
+                            <td>
+                                <!-- Status Check for Server and SmartLead -->
+                                {% if mailbox.added_to_server %}
+                                    <span class="badge bg-success">Added to Server ✅</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pending Server Addition ⚠</span>
+                                {% endif %}
+                                {% if mailbox.added_to_smartlead %}
+                                    <span class="badge bg-success">Added to SmartLead ✅</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pending SmartLead Addition ⚠</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <!-- Webmail Button -->
+                                <a href="https://mail.trycpd.com/SOGo/so/{{ mailbox.email_address }}" target="_blank" class="btn btn-secondary btn-sm">
+                                    Webmail
+                                </a>
+
+                                <!-- Delete Mailbox Form -->
+                                <form method="POST" action="{{ url_for('mailbox.delete_mailbox', mailbox_id=mailbox.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4">No mailboxes added yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-
-        <div class="mb-3">
-            <label for="username" class="form-label">Username (Left part of email address)</label>
-            {{ form.username(class="form-control", id="username", placeholder="e.g., firstname") }}
-        </div>
-
-        <div class="mb-3">
-            <label for="full_name" class="form-label">Full Name</label>
-            {{ form.full_name(class="form-control", id="full_name", placeholder="e.g., John Doe") }}
-        </div>
-
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            {{ form.password(class="form-control", id="password", type="password", placeholder="Enter a strong password") }}
-        </div>
-
-        <div class="mb-3">
-            <label for="email_signature" class="form-label">Email Signature (Supports HTML)</label>
-            {{ form.email_signature(class="form-control", id="email_signature") }}
-        </div>
-
-        <div class="mb-3">
-            <label for="message_per_day" class="form-label">Messages Per Day</label>
-            {{ form.message_per_day(class="form-control", id="message_per_day") }}
-        </div>
-
-        <div class="mb-3">
-            <label for="minimum_time_gap" class="form-label">Minimum Time Gap (in minutes)</label>
-            {{ form.minimum_time_gap(class="form-control", id="minimum_time_gap") }}
-        </div>
-
-        <div class="mb-3">
-            <label for="total_warmup_per_day" class="form-label">Total Warmup Emails Per Day</label>
-            {{ form.total_warmup_per_day(class="form-control", id="total_warmup_per_day") }}
-        </div>
-
-        <div class="mb-3">
-            <label for="daily_rampup" class="form-label">Daily Rampup</label>
-            {{ form.daily_rampup(class="form-control", id="daily_rampup") }}
-        </div>
-
-        <div class="mb-3">
-            <label for="reply_rate_percentage" class="form-label">Reply Rate Percentage</label>
-            {{ form.reply_rate_percentage(class="form-control", id="reply_rate_percentage") }}
-        </div>
-
-        <button type="submit" class="btn btn-primary">Add Mailbox</button>
-    </form>
-
-    <h2 class="mt-5">Your Mailboxes</h2>
-    <ul id="mailboxList">
-        {% for mailbox in mailboxes %}
-            <li class="mailbox-item">
-                <p><strong>Email Address:</strong> {{ mailbox.email_address }}</p>
-                <p><strong>Full Name:</strong> {{ mailbox.full_name }}</p>
-                <p><strong>Email Signature:</strong> {{ mailbox.email_signature }}</p>
-
-                <!-- Show status of mailbox creation in server and SmartLead -->
-<p><strong>Status:</strong> 
-    <span class="text-success">
-        {% if mailbox.added_to_server %}
-            Added to Server ✅
-        {% else %}
-            <span class="text-danger">Not Added to Server ❌</span>
-        {% endif %}
-    </span>
-    <span class="text-success">
-        {% if mailbox.added_to_smartlead %}
-            Added to SmartLead ✅
-        {% else %}
-            <span class="text-danger">Not Added to SmartLead ❌</span>
-        {% endif %}
-    </span>
-</p>
-                <!-- Delete button form -->
-                <form method="POST" action="{{ url_for('mailbox.delete_mailbox', mailbox_id=mailbox.id) }}" style="display:inline;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                </form>
-
-                <!-- Webmail button -->
-                <a href="https://mail.trycpd.com/SOGo/so/{{ mailbox.email_address }}" class="btn btn-secondary btn-sm" target="_blank">Webmail</a>
-            </li>
-            <hr>
-        {% else %}
-            <li>No mailboxes added yet.</li>
-        {% endfor %}
-    </ul>
+    </div>
 </div>
+
+<!-- Add Mailbox Modal -->
+<div class="modal fade" id="addMailboxModal" tabindex="-1" aria-labelledby="addMailboxModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addMailboxModalLabel">Add New Mailbox</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addMailboxForm" method="POST" action="{{ url_for('mailbox.manage_mailboxes') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="domainInput" class="form-label">Domain</label>
+                        <select class="form-control" id="domainInput" name="domain_id" required>
+                            {% for domain in domains %}
+                                <option value="{{ domain.id }}">{{ domain.domain }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="usernameInput" class="form-label">Username (left part of email)</label>
+                        {{ form.username(class="form-control", id="usernameInput", placeholder="e.g., firstname") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="fullNameInput" class="form-label">Full Name</label>
+                        {{ form.full_name(class="form-control", id="fullNameInput", placeholder="e.g., John Doe") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="passwordInput" class="form-label">Password</label>
+                        {{ form.password(class="form-control", id="passwordInput", type="password", placeholder="Enter a strong password") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="emailSignatureInput" class="form-label">Email Signature</label>
+                        {{ form.email_signature(class="form-control", id="emailSignatureInput", placeholder="Add your email signature here (supports HTML)") }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add Mailbox</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mailboxes.css') }}">
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Custom JavaScript for mailbox management can go here
+</script>
 {% endblock %}

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
-from app.models import User
+from app.models.user import User #changed for new file structure 
 from app.forms import LoginForm, RegisterForm
 from app import db
 import stripe
