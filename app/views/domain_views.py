@@ -232,41 +232,45 @@ def manage_domains():
         session['domain_status'] = "Initializing domain addition..."
 
         # Add domain to Mailcow
-        if add_domain_to_mailcow(form.domain.data):
-            time.sleep(5)
-            dkim_data = get_dkim_key(form.domain.data)
-            if not dkim_data:
-                flash('Failed to retrieve DKIM key.', 'danger')
-                return redirect(url_for('domain.manage_domains'))
-
-            dkim_txt_record = dkim_data.get('dkim_txt', 'Not Available')
-            if clear_cloudflare_records(form.cloudflare_zone_id.data):
-                if add_dns_records_to_cloudflare(form.domain.data, form.cloudflare_zone_id.data, dkim_txt_record):
-                    if delete_existing_page_rules(form.cloudflare_zone_id.data):
-                        if add_forwarding_rule(form.cloudflare_zone_id.data, form.domain.data, form.forwarding_url.data):
-                            new_domain = Domain(
-                                user_id=current_user.id,
-                                domain=form.domain.data,
-                                cloudflare_zone_id=form.cloudflare_zone_id.data,
-                                forwarding_url=form.forwarding_url.data,
-                                added_to_server=True
-                            )
-                            db.session.add(new_domain)
-                            db.session.commit()
-
-                            flash('Domain added successfully with DNS and forwarding rule!', 'success')
-                            return redirect(url_for('domain.manage_domains'))
-                        else:
-                            flash('Failed to create forwarding rule in Cloudflare.', 'danger')
-                    else:
-                        flash('Failed to delete existing page rules in Cloudflare.', 'danger')
-                else:
-                    flash('Failed to set DNS records in Cloudflare.', 'danger')
-            else:
-                flash('Failed to clear DNS records in Cloudflare.', 'danger')
-        else:
+        if not add_domain_to_mailcow(form.domain.data):
             flash('Failed to add domain to Mailcow.', 'danger')
+            return redirect(url_for('domain.manage_domains'))
 
+        time.sleep(5)
+        dkim_data = get_dkim_key(form.domain.data)
+        if not dkim_data:
+            flash('Failed to retrieve DKIM key.', 'danger')
+            return redirect(url_for('domain.manage_domains'))
+
+        dkim_txt_record = dkim_data.get('dkim_txt', 'Not Available')
+
+        if not clear_cloudflare_records(form.cloudflare_zone_id.data):
+            flash('Failed to clear DNS records in Cloudflare.', 'danger')
+            return redirect(url_for('domain.manage_domains'))
+
+        if not add_dns_records_to_cloudflare(form.domain.data, form.cloudflare_zone_id.data, dkim_txt_record):
+            flash('Failed to set DNS records in Cloudflare.', 'danger')
+            return redirect(url_for('domain.manage_domains'))
+
+        if not delete_existing_page_rules(form.cloudflare_zone_id.data):
+            flash('Failed to delete existing page rules in Cloudflare.', 'danger')
+            return redirect(url_for('domain.manage_domains'))
+
+        if not add_forwarding_rule(form.cloudflare_zone_id.data, form.domain.data, form.forwarding_url.data):
+            flash('Failed to create forwarding rule in Cloudflare.', 'danger')
+            return redirect(url_for('domain.manage_domains'))
+
+        new_domain = Domain(
+            user_id=current_user.id,
+            domain=form.domain.data,
+            cloudflare_zone_id=form.cloudflare_zone_id.data,
+            forwarding_url=form.forwarding_url.data,
+            added_to_server=True
+        )
+        db.session.add(new_domain)
+        db.session.commit()
+
+        flash('Domain added successfully with DNS and forwarding rule!', 'success')
         return redirect(url_for('domain.manage_domains'))
 
     user_domains = Domain.query.filter_by(user_id=current_user.id).all()
@@ -276,9 +280,9 @@ def manage_domains():
 @domain.route('/delete_domain/<int:domain_id>', methods=['POST'])
 @login_required
 def delete_domain(domain_id):
-    domain = Domain.query.get_or_404(domain_id)
+    domain = Domain.query.get(domain_id)
 
-    if domain.user_id != current_user.id:
+    if not domain or domain.user_id != current_user.id:
         flash('You are not authorized to delete this domain.', 'danger')
         return redirect(url_for('domain.manage_domains'))
 

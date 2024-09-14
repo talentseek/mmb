@@ -47,6 +47,11 @@ def create_app():
     from app.admin_views import init_admin
     init_admin(app)  # Call the function to set up admin with models
 
+    # Register Error Handlers
+    from app.errors.handlers import errors
+    app.register_blueprint(errors)
+
+
     return app
 
 @login_manager.user_loader

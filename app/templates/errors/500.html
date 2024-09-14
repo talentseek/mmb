@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h1 class="display-4">500</h1>
+    <p class="lead">An unexpected error has occurred. Please try again later.</p>
+    <a href="{{ url_for('dashboard.dashboard_view') }}" class="btn btn-primary">Go to Dashboard</a>
+</div>
+{% endblock %}
